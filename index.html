@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="eink">
+<html lang="en" data-theme="eink" data-view="editor">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,8 +17,8 @@
     font-weight:600 700; font-style:normal; font-display:swap;
   }
 
-  :root[data-theme="eink"]  { --bg:#f7f6f2; --fg:#23211e; --dim:#8a867e; --border:#c8c4ba; }
-  :root[data-theme="space"] { --bg:#0b0e18; --fg:#c9cde4; --dim:#6b7290; --border:#2a3150; }
+  :root[data-theme="eink"]  { --bg:#f7f6f2; --fg:#23211e; --dim:#8a867e; --border:#c8c4ba; --panel:#eceae4; }
+  :root[data-theme="space"] { --bg:#0b0e18; --fg:#c9cde4; --dim:#6b7290; --border:#2a3150; --panel:#121624; }
 
   * { box-sizing:border-box; }
   html, body { height:100%; }
@@ -31,7 +31,6 @@
     transition:background .2s ease, color .2s ease;
   }
 
-  /* Full-height column: header + title fixed, images share what's left. */
   .wrap {
     width:100%; height:100%; margin:0 auto; padding:0 24px;
     display:flex; flex-direction:column; min-height:0;
@@ -45,7 +44,8 @@
   .brand .name { font-size:1.05rem; }
   .toggle {
     background:none; border:1px solid var(--border); color:var(--dim);
-    font-size:.72rem; letter-spacing:.05em; padding:.3rem .55rem; border-radius:3px; cursor:pointer;
+    font-family:inherit; font-size:.72rem; letter-spacing:.05em;
+    padding:.3rem .55rem; border-radius:3px; cursor:pointer;
   }
   .toggle:hover { color:var(--fg); border-color:var(--dim); }
 
@@ -54,31 +54,50 @@
   h1 .sym { color:var(--dim); font-weight:400; }
   .intro { font-size:1.02rem; line-height:1.55; margin:0; max-width:66ch; }
 
-  /* The two shots split the remaining height and sit side by side. */
-  .shots {
-    flex:1 1 auto; min-height:0;
-    display:flex; gap:24px; align-items:center;
-    padding:20px 0;
+  /* Tabs to switch which screenshot fills the stage. */
+  .tabs { flex:none; display:flex; gap:2px; margin:18px 0 0; }
+  .tab {
+    background:none; border:none; border-bottom:2px solid transparent;
+    color:var(--dim); font-family:inherit; font-size:.9rem; cursor:pointer;
+    padding:.4rem .1rem; margin-right:1.4rem;
   }
-  figure { flex:1 1 0; min-width:0; min-height:0; margin:0; display:flex; }
-  figure img {
-    max-width:100%; max-height:100%; width:auto; height:auto; margin:auto;
-    object-fit:contain; border:1px solid var(--border); border-radius:6px;
+  .tab:hover { color:var(--fg); }
+  :root[data-view="editor"] .tab[data-view="editor"],
+  :root[data-view="git"]    .tab[data-view="git"] {
+    color:var(--fg); border-bottom-color:var(--fg);
   }
-  :root[data-theme="eink"]  .shot-space { display:none; }
-  :root[data-theme="space"] .shot-eink  { display:none; }
 
-  .closing { flex:none; margin:0 0 22px; color:var(--dim); font-size:1rem; }
+  /* One big image, scaled to fill the space it's given. */
+  .stage {
+    flex:1 1 auto; min-height:0; position:relative; margin:14px 0 18px;
+  }
+  .stage img {
+    position:absolute; inset:0; margin:auto;
+    max-width:100%; max-height:100%; width:auto; height:auto;
+    border:1px solid var(--border); border-radius:6px;
+    opacity:0; transition:opacity .22s ease;
+  }
+  :root[data-theme="eink"][data-view="editor"]  .s-eink-editor,
+  :root[data-theme="eink"][data-view="git"]     .s-eink-git,
+  :root[data-theme="space"][data-view="editor"] .s-space-editor,
+  :root[data-theme="space"][data-view="git"]    .s-space-git { opacity:1; }
 
-  /* Narrow screens: stop cramming two landscape shots onto one screen —
-     stack them and let the page scroll normally. */
-  @media (max-width:820px) {
+  .closing { flex:none; margin:0 0 20px; color:var(--dim); font-size:1rem; }
+
+  /* Narrow screens: let it breathe and scroll instead of squeezing to fit. */
+  @media (max-width:760px) {
     html, body { height:auto; }
     .wrap { height:auto; }
-    .shots { flex-direction:column; align-items:stretch; }
-    figure img { max-height:none; width:100%; }
-    h1 { font-size:1.9rem; }
-    .closing { margin:34px 0 60px; }
+    .stage { height:auto; }
+    .stage img {
+      position:static; opacity:0; width:100%; max-height:none; display:none;
+    }
+    :root[data-theme="eink"][data-view="editor"]  .s-eink-editor,
+    :root[data-theme="eink"][data-view="git"]     .s-eink-git,
+    :root[data-theme="space"][data-view="editor"] .s-space-editor,
+    :root[data-theme="space"][data-view="git"]    .s-space-git { opacity:1; display:block; }
+    h1 { font-size:1.8rem; }
+    .closing { margin:26px 0 50px; }
   }
 </style>
 </head>
@@ -95,15 +114,16 @@
       <p class="intro">A text editor. Native, written in Rust, configured in Lua. Runs on Windows, macOS and Linux.</p>
     </div>
 
-    <div class="shots">
-      <figure>
-        <img class="shot-eink"  src="assets/shots/eink_editor.png"  alt="The therefore editor.">
-        <img class="shot-space" src="assets/shots/space_editor.png" alt="The therefore editor.">
-      </figure>
-      <figure>
-        <img class="shot-eink"  src="assets/shots/eink_git.png"  alt="The therefore git window.">
-        <img class="shot-space" src="assets/shots/space_git.png" alt="The therefore git window.">
-      </figure>
+    <div class="tabs" role="tablist">
+      <button class="tab" data-view="editor" role="tab">editor</button>
+      <button class="tab" data-view="git" role="tab">git</button>
+    </div>
+
+    <div class="stage">
+      <img class="s-eink-editor"  src="assets/shots/eink_editor.png"  alt="The therefore editor.">
+      <img class="s-eink-git"     src="assets/shots/eink_git.png"     alt="The therefore git window.">
+      <img class="s-space-editor" src="assets/shots/space_editor.png" alt="The therefore editor.">
+      <img class="s-space-git"    src="assets/shots/space_git.png"    alt="The therefore git window.">
     </div>
 
     <p class="closing">Nothing else to explain. Designed to work.</p>
@@ -112,17 +132,32 @@
 
 <script>
   (function () {
-    var root = document.documentElement, btn = document.getElementById("toggle"), saved = null;
+    var root = document.documentElement;
+
+    // Theme
+    var btn = document.getElementById("toggle"), saved = null;
     try { saved = localStorage.getItem("therefore-theme"); } catch (e) {}
     if (!saved && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) saved = "space";
     if (saved) root.setAttribute("data-theme", saved);
-    function label() { btn.textContent = root.getAttribute("data-theme") === "space" ? "eink" : "space"; }
-    label();
+    function themeLabel() { btn.textContent = root.getAttribute("data-theme") === "space" ? "eink" : "space"; }
+    themeLabel();
     btn.addEventListener("click", function () {
       var next = root.getAttribute("data-theme") === "space" ? "eink" : "space";
       root.setAttribute("data-theme", next);
       try { localStorage.setItem("therefore-theme", next); } catch (e) {}
-      label();
+      themeLabel();
+    });
+
+    // View switch (editor / git)
+    var views = ["editor", "git"];
+    function setView(v) { root.setAttribute("data-view", v); }
+    document.querySelectorAll(".tab").forEach(function (t) {
+      t.addEventListener("click", function () { setView(t.getAttribute("data-view")); });
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      var cur = views.indexOf(root.getAttribute("data-view"));
+      setView(views[(cur + (e.key === "ArrowRight" ? 1 : views.length - 1)) % views.length]);
     });
   })();
 </script>
