@@ -17,14 +17,8 @@
     font-weight:600 700; font-style:normal; font-display:swap;
   }
 
-  :root[data-theme="eink"] {
-    --bg:#f7f6f2; --fg:#23211e; --dim:#8a867e; --panel:#eceae4;
-    --border:#c8c4ba;
-  }
-  :root[data-theme="space"] {
-    --bg:#0b0e18; --fg:#c9cde4; --dim:#6b7290; --panel:#121624;
-    --border:#2a3150;
-  }
+  :root[data-theme="eink"]  { --bg:#f7f6f2; --fg:#23211e; --dim:#8a867e; --border:#c8c4ba; }
+  :root[data-theme="space"] { --bg:#0b0e18; --fg:#c9cde4; --dim:#6b7290; --border:#2a3150; }
 
   * { box-sizing:border-box; }
   html { -webkit-text-size-adjust:100%; }
@@ -35,77 +29,38 @@
     -webkit-font-smoothing:antialiased;
     transition:background .2s ease, color .2s ease;
   }
-  .mono { font-family:inherit; }
-  .wrap { max-width:760px; margin:0 auto; padding:0 28px; }
+  .wrap { max-width:1000px; margin:0 auto; padding:0 28px; }
 
   header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:34px 0;
+    display:flex; align-items:center; justify-content:space-between; padding:34px 0;
   }
   .brand { display:flex; align-items:baseline; gap:.5rem; text-decoration:none; color:inherit; }
   .brand .sym { color:var(--dim); letter-spacing:.15em; }
-  .brand .name {
-    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace; font-size:1.05rem;
-  }
+  .brand .name { font-size:1.05rem; }
   .toggle {
     background:none; border:1px solid var(--border); color:var(--dim);
-    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
-    font-size:.72rem; letter-spacing:.05em;
-    padding:.3rem .55rem; border-radius:3px; cursor:pointer;
+    font-size:.72rem; letter-spacing:.05em; padding:.3rem .55rem; border-radius:3px; cursor:pointer;
   }
   .toggle:hover { color:var(--fg); border-color:var(--dim); }
 
-  h1 {
-    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
-    font-weight:600; font-size:2.3rem; margin:34px 0 .6rem; letter-spacing:-.01em;
-  }
+  h1 { font-weight:600; font-size:2.3rem; margin:30px 0 .7rem; letter-spacing:-.01em; }
   h1 .sym { color:var(--dim); font-weight:400; }
-  .intro { font-size:1.05rem; line-height:1.65; margin:0 0 6px; max-width:60ch; color:var(--fg); }
+  .intro { font-size:1.05rem; line-height:1.65; margin:0; max-width:60ch; }
 
-  figure { margin:34px 0; }
+  figure { margin:34px 0 0; }
   figure img {
     display:block; width:100%; height:auto;
     border:1px solid var(--border); border-radius:6px;
   }
-  figcaption { color:var(--dim); font-size:.85rem; margin-top:.5rem; }
+  :root[data-theme="eink"]  .shot-space { display:none; }
+  :root[data-theme="space"] .shot-eink  { display:none; }
 
-  h2 {
-    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
-    font-size:.8rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
-    color:var(--dim); margin:56px 0 1rem;
+  .closing {
+    margin:40px 0 70px; color:var(--dim); font-size:1rem;
   }
-
-  ul.features { list-style:none; margin:0; padding:0; }
-  ul.features li {
-    padding:.85rem 0; border-top:1px solid var(--border);
-    display:grid; grid-template-columns:190px 1fr; gap:1.2rem; align-items:baseline;
-  }
-  ul.features li:last-child { border-bottom:1px solid var(--border); }
-  ul.features .k { font-weight:600; }
-  ul.features .v { color:var(--fg); }
-  ul.features .v .mono, p .mono { font-size:.92em; }
-
-  pre.cmds {
-    background:var(--panel); border:1px solid var(--border); border-radius:6px;
-    padding:1rem 1.2rem; margin:0; overflow-x:auto;
-    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
-    font-size:.84rem; line-height:1.9;
-  }
-  pre.cmds .p { color:var(--dim); }
-  pre.cmds .c { color:var(--dim); }
-  p { margin:0 0 1rem; }
-
-  footer {
-    display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem;
-    color:var(--dim); font-size:.88rem;
-    padding:40px 0 60px; margin-top:56px; border-top:1px solid var(--border);
-  }
-  footer .sym { letter-spacing:.15em; }
 
   @media (max-width:600px) {
-    body { font-size:17px; }
     h1 { font-size:1.9rem; }
-    ul.features li { grid-template-columns:1fr; gap:.15rem; }
   }
 </style>
 </head>
@@ -121,39 +76,16 @@
     <p class="intro">A text editor. Native, written in Rust, configured in Lua. Runs on Windows, macOS and Linux.</p>
 
     <figure>
-      <img src="assets/shots/editor.png" alt="The therefore editor showing a Rust file with syntax highlighting, a file tree and tabs.">
-      <figcaption>The editor: file tree, tabs, and tree-sitter highlighting.</figcaption>
+      <img class="shot-eink"  src="assets/shots/eink_editor.png"  alt="The therefore editor.">
+      <img class="shot-space" src="assets/shots/space_editor.png" alt="The therefore editor.">
     </figure>
-
-    <h2>Features</h2>
-    <ul class="features">
-      <li><span class="k">Syntax highlighting</span><span class="v">tree-sitter for 16 languages, including Rust, Python, JavaScript, TypeScript, Go, C, C++, and Lua.</span></li>
-      <li><span class="k">File tree and tabs</span><span class="v">Browse a folder, open files in tabs, drag tabs to reorder, rename in place.</span></li>
-      <li><span class="k">Git window</span><span class="v">A separate window with the commit history graph, staging, diffs, branches, merging, and stashes.</span></li>
-      <li><span class="k">Git in the editor</span><span class="v">Changed line numbers are tinted, the current branch shows in the status bar, and changed files get a dot in the tree.</span></li>
-      <li><span class="k">Embedded terminal</span><span class="v">A real shell in a panel at the bottom, toggled with <span class="mono">Ctrl+`</span>.</span></li>
-      <li><span class="k">Remote files</span><span class="v">Open <span class="mono">user@host:/path</span> and edit over SSH/SFTP. Nothing to install on the server.</span></li>
-      <li><span class="k">Markdown preview</span><span class="v">Toggle a <span class="mono">.md</span> tab between source and rendered view.</span></li>
-      <li><span class="k">Lua config</span><span class="v">Themes, fonts, sizes, and keybindings in <span class="mono">init.lua</span>. Saving it applies immediately.</span></li>
-      <li><span class="k">Themes</span><span class="v">Five built-in: <span class="mono">eink</span>, <span class="mono">space</span>, <span class="mono">forest</span>, <span class="mono">deep_ocean</span>, <span class="mono">mars</span>. Or write your own in Lua.</span></li>
-      <li><span class="k">Bundled font</span><span class="v">Ships JetBrains Mono, so it looks the same on every OS.</span></li>
-    </ul>
 
     <figure>
-      <img src="assets/shots/git-full.png" alt="The therefore git window showing a commit history graph, branch list and toolbar.">
-      <figcaption>The git window: history graph, branches, and toolbar.</figcaption>
+      <img class="shot-eink"  src="assets/shots/eink_git.png"  alt="The therefore git window.">
+      <img class="shot-space" src="assets/shots/space_git.png" alt="The therefore git window.">
     </figure>
 
-    <h2>Build &amp; run</h2>
-    <p>Needs a Rust toolchain and a C compiler.</p>
-    <pre class="cmds"><span class="p">$</span> cargo run                          <span class="c"># scratch buffer</span>
-<span class="p">$</span> cargo run -- path/to/file.rs       <span class="c"># a local file</span>
-<span class="p">$</span> cargo run -- user@host:/etc/hosts  <span class="c"># over SFTP</span></pre>
-
-    <footer>
-      <span><span class="sym">&#8756;</span> therefore</span>
-      <span>written in Rust</span>
-    </footer>
+    <p class="closing">Nothing else to explain. Designed to work.</p>
 
   </div>
 
