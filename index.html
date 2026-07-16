@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="eink" data-view="editor">
+<html lang="en" data-theme="eink" data-front="editor">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,8 +17,8 @@
     font-weight:600 700; font-style:normal; font-display:swap;
   }
 
-  :root[data-theme="eink"]  { --bg:#f7f6f2; --fg:#23211e; --dim:#8a867e; --border:#c8c4ba; --panel:#eceae4; }
-  :root[data-theme="space"] { --bg:#0b0e18; --fg:#c9cde4; --dim:#6b7290; --border:#2a3150; --panel:#121624; }
+  :root[data-theme="eink"]  { --bg:#f7f6f2; --fg:#23211e; --dim:#8a867e; --border:#c8c4ba; --panel:#eceae4; --shadow:rgba(40,36,30,.18); }
+  :root[data-theme="space"] { --bg:#0b0e18; --fg:#c9cde4; --dim:#6b7290; --border:#2a3150; --panel:#121624; --shadow:rgba(0,0,0,.45); }
 
   * { box-sizing:border-box; }
   html, body { height:100%; }
@@ -31,14 +31,13 @@
     transition:background .2s ease, color .2s ease;
   }
 
+  /* Centered middle-width column. */
   .wrap {
-    width:100%; height:100%; margin:0 auto; padding:0 24px;
+    width:100%; max-width:1200px; height:100%; margin:0 auto; padding:0 28px;
     display:flex; flex-direction:column; min-height:0;
   }
 
-  header {
-    flex:none; display:flex; align-items:center; justify-content:space-between; padding:20px 0 0;
-  }
+  header { flex:none; display:flex; align-items:center; justify-content:space-between; padding:20px 0 0; }
   .brand { display:flex; align-items:baseline; gap:.5rem; text-decoration:none; color:inherit; }
   .brand .sym { color:var(--dim); letter-spacing:.15em; }
   .brand .name { font-size:1.05rem; }
@@ -54,48 +53,61 @@
   h1 .sym { color:var(--dim); font-weight:400; }
   .intro { font-size:1.02rem; line-height:1.55; margin:0; max-width:66ch; }
 
-  /* Tabs to switch which screenshot fills the stage. */
-  .tabs { flex:none; display:flex; gap:2px; margin:18px 0 0; }
-  .tab {
-    background:none; border:none; border-bottom:2px solid transparent;
-    color:var(--dim); font-family:inherit; font-size:.9rem; cursor:pointer;
-    padding:.4rem .1rem; margin-right:1.4rem;
-  }
-  .tab:hover { color:var(--fg); }
-  :root[data-view="editor"] .tab[data-view="editor"],
-  :root[data-view="git"]    .tab[data-view="git"] {
-    color:var(--fg); border-bottom-color:var(--fg);
-  }
-
-  /* One big image, scaled to fill the space it's given. */
+  /* The card stack. Click (or arrow keys) brings the back card to the front. */
   .stage {
-    flex:1 1 auto; min-height:0; position:relative; margin:14px 0 18px;
+    flex:1 1 auto; min-height:0; position:relative;
+    margin:26px 0 16px; cursor:pointer; outline:none;
   }
-  .stage img {
-    position:absolute; inset:0; margin:auto;
-    max-width:100%; max-height:100%; width:auto; height:auto;
+  .card {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .5s cubic-bezier(.2,.75,.2,1), opacity .4s ease, filter .4s ease;
+    will-change:transform;
+  }
+  .card .frame { position:relative; }
+  .card img {
+    display:none; max-width:100%; max-height:100%; width:auto; height:auto;
     border:1px solid var(--border); border-radius:6px;
-    opacity:0; transition:opacity .22s ease;
+    box-shadow:0 14px 40px var(--shadow);
   }
-  :root[data-theme="eink"][data-view="editor"]  .s-eink-editor,
-  :root[data-theme="eink"][data-view="git"]     .s-eink-git,
-  :root[data-theme="space"][data-view="editor"] .s-space-editor,
-  :root[data-theme="space"][data-view="git"]    .s-space-git { opacity:1; }
+  :root[data-theme="eink"]  .card img.t-eink,
+  :root[data-theme="space"] .card img.t-space { display:block; }
 
+  .badge {
+    position:absolute; top:10px; left:12px;
+    font-size:.72rem; letter-spacing:.06em;
+    color:var(--fg); background:var(--panel);
+    border:1px solid var(--border); border-radius:3px;
+    padding:.12rem .5rem; opacity:.9;
+  }
+
+  /* Front card: centered, on top. Back card: nudged out behind, dimmed. */
+  :root[data-front="editor"] .card[data-view="editor"],
+  :root[data-front="git"]    .card[data-view="git"] {
+    transform:translate(0,0) rotate(0) scale(1); z-index:2;
+  }
+  :root[data-front="editor"] .card[data-view="git"],
+  :root[data-front="git"]    .card[data-view="editor"] {
+    transform:translate(34px,34px) rotate(1.8deg) scale(.98);
+    z-index:1; opacity:.55; filter:saturate(.85);
+  }
+  /* Only the front card's badge stays fully lit. */
+  :root[data-front="editor"] .card[data-view="git"] .badge,
+  :root[data-front="git"]    .card[data-view="editor"] .badge { opacity:.75; }
+
+  .hint { flex:none; margin:0 0 8px; color:var(--dim); font-size:.82rem; }
   .closing { flex:none; margin:0 0 20px; color:var(--dim); font-size:1rem; }
 
-  /* Narrow screens: let it breathe and scroll instead of squeezing to fit. */
+  /* Narrow screens: drop the stack trick, show both stacked and scroll. */
   @media (max-width:760px) {
     html, body { height:auto; }
     .wrap { height:auto; }
-    .stage { height:auto; }
-    .stage img {
-      position:static; opacity:0; width:100%; max-height:none; display:none;
-    }
-    :root[data-theme="eink"][data-view="editor"]  .s-eink-editor,
-    :root[data-theme="eink"][data-view="git"]     .s-eink-git,
-    :root[data-theme="space"][data-view="editor"] .s-space-editor,
-    :root[data-theme="space"][data-view="git"]    .s-space-git { opacity:1; display:block; }
+    .stage { position:static; height:auto; cursor:default; margin:22px 0 0; }
+    .card { position:static; display:block; transform:none!important;
+            opacity:1!important; filter:none!important; margin-bottom:18px; }
+    .card img { width:100%; max-height:none; }
+    .badge { top:8px; left:10px; }
+    .hint { display:none; }
     h1 { font-size:1.8rem; }
     .closing { margin:26px 0 50px; }
   }
@@ -114,18 +126,24 @@
       <p class="intro">A text editor. Native, written in Rust, configured in Lua. Runs on Windows, macOS and Linux.</p>
     </div>
 
-    <div class="tabs" role="tablist">
-      <button class="tab" data-view="editor" role="tab">editor</button>
-      <button class="tab" data-view="git" role="tab">git</button>
+    <div class="stage" id="stage" tabindex="0" role="button" aria-label="Switch screenshot">
+      <div class="card" data-view="git">
+        <div class="frame">
+          <img class="t-eink"  src="assets/shots/eink_git.png"  alt="The therefore git window.">
+          <img class="t-space" src="assets/shots/space_git.png" alt="The therefore git window.">
+          <span class="badge">git</span>
+        </div>
+      </div>
+      <div class="card" data-view="editor">
+        <div class="frame">
+          <img class="t-eink"  src="assets/shots/eink_editor.png"  alt="The therefore editor.">
+          <img class="t-space" src="assets/shots/space_editor.png" alt="The therefore editor.">
+          <span class="badge">editor</span>
+        </div>
+      </div>
     </div>
 
-    <div class="stage">
-      <img class="s-eink-editor"  src="assets/shots/eink_editor.png"  alt="The therefore editor.">
-      <img class="s-eink-git"     src="assets/shots/eink_git.png"     alt="The therefore git window.">
-      <img class="s-space-editor" src="assets/shots/space_editor.png" alt="The therefore editor.">
-      <img class="s-space-git"    src="assets/shots/space_git.png"    alt="The therefore git window.">
-    </div>
-
+    <p class="hint" id="hint">click the stack to see the git window</p>
     <p class="closing">Nothing else to explain. Designed to work.</p>
 
   </div>
@@ -148,16 +166,19 @@
       themeLabel();
     });
 
-    // View switch (editor / git)
-    var views = ["editor", "git"];
-    function setView(v) { root.setAttribute("data-view", v); }
-    document.querySelectorAll(".tab").forEach(function (t) {
-      t.addEventListener("click", function () { setView(t.getAttribute("data-view")); });
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-      var cur = views.indexOf(root.getAttribute("data-view"));
-      setView(views[(cur + (e.key === "ArrowRight" ? 1 : views.length - 1)) % views.length]);
+    // Card stack
+    var hint = document.getElementById("hint"), stage = document.getElementById("stage");
+    function flip() {
+      var next = root.getAttribute("data-front") === "editor" ? "git" : "editor";
+      root.setAttribute("data-front", next);
+      hint.textContent = next === "editor" ? "click the stack to see the git window"
+                                           : "click the stack to see the editor";
+    }
+    stage.addEventListener("click", flip);
+    stage.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault(); flip();
+      }
     });
   })();
 </script>
