@@ -6,6 +6,17 @@
 <title>therefore — a text editor</title>
 <meta name="description" content="therefore is a native text editor written in Rust and configured in Lua.">
 <style>
+  @font-face {
+    font-family:"JetBrains Mono";
+    src:url("assets/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+    font-weight:400; font-style:normal; font-display:swap;
+  }
+  @font-face {
+    font-family:"JetBrains Mono";
+    src:url("assets/fonts/JetBrainsMono-Bold.ttf") format("truetype");
+    font-weight:600 700; font-style:normal; font-display:swap;
+  }
+
   :root[data-theme="eink"] {
     --bg:#f7f6f2; --fg:#23211e; --dim:#8a867e; --panel:#eceae4;
     --border:#c8c4ba;
@@ -19,12 +30,12 @@
   html { -webkit-text-size-adjust:100%; }
   body {
     margin:0; background:var(--bg); color:var(--fg);
-    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-    font-size:18px; line-height:1.6;
+    font-family:"JetBrains Mono",ui-monospace,"SF Mono",Consolas,monospace;
+    font-size:15px; line-height:1.7;
     -webkit-font-smoothing:antialiased;
     transition:background .2s ease, color .2s ease;
   }
-  .mono { font-family:"JetBrains Mono",ui-monospace,"SF Mono",Consolas,monospace; }
+  .mono { font-family:inherit; }
   .wrap { max-width:760px; margin:0 auto; padding:0 28px; }
 
   header {
@@ -49,7 +60,7 @@
     font-weight:600; font-size:2.3rem; margin:34px 0 .6rem; letter-spacing:-.01em;
   }
   h1 .sym { color:var(--dim); font-weight:400; }
-  .intro { font-size:1.2rem; margin:0 0 6px; max-width:52ch; }
+  .intro { font-size:1.05rem; line-height:1.65; margin:0 0 6px; max-width:60ch; color:var(--fg); }
 
   figure { margin:34px 0; }
   figure img {
