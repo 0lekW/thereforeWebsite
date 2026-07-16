@@ -21,6 +21,7 @@
   :root[data-theme="space"] { --bg:#0b0e18; --fg:#c9cde4; --dim:#6b7290; --border:#2a3150; }
 
   * { box-sizing:border-box; }
+  html, body { height:100%; }
   html { -webkit-text-size-adjust:100%; }
   body {
     margin:0; background:var(--bg); color:var(--fg);
@@ -29,10 +30,15 @@
     -webkit-font-smoothing:antialiased;
     transition:background .2s ease, color .2s ease;
   }
-  .wrap { max-width:1000px; margin:0 auto; padding:0 28px; }
+
+  /* Full-height column: header + title fixed, images share what's left. */
+  .wrap {
+    max-width:1180px; height:100%; margin:0 auto; padding:0 28px;
+    display:flex; flex-direction:column; min-height:0;
+  }
 
   header {
-    display:flex; align-items:center; justify-content:space-between; padding:34px 0;
+    flex:none; display:flex; align-items:center; justify-content:space-between; padding:24px 0 0;
   }
   .brand { display:flex; align-items:baseline; gap:.5rem; text-decoration:none; color:inherit; }
   .brand .sym { color:var(--dim); letter-spacing:.15em; }
@@ -43,24 +49,36 @@
   }
   .toggle:hover { color:var(--fg); border-color:var(--dim); }
 
-  h1 { font-weight:600; font-size:2.3rem; margin:30px 0 .7rem; letter-spacing:-.01em; }
+  .head { flex:none; }
+  h1 { font-weight:600; font-size:2.1rem; margin:22px 0 .6rem; letter-spacing:-.01em; }
   h1 .sym { color:var(--dim); font-weight:400; }
-  .intro { font-size:1.05rem; line-height:1.65; margin:0; max-width:60ch; }
+  .intro { font-size:1.02rem; line-height:1.6; margin:0; max-width:66ch; }
 
-  figure { margin:34px 0 0; }
+  /* The two shots split the remaining height and sit side by side. */
+  .shots {
+    flex:1 1 auto; min-height:0;
+    display:flex; gap:20px; align-items:center;
+    padding:26px 0;
+  }
+  figure { flex:1 1 0; min-width:0; min-height:0; margin:0; display:flex; }
   figure img {
-    display:block; width:100%; height:auto;
-    border:1px solid var(--border); border-radius:6px;
+    max-width:100%; max-height:100%; width:auto; height:auto; margin:auto;
+    object-fit:contain; border:1px solid var(--border); border-radius:6px;
   }
   :root[data-theme="eink"]  .shot-space { display:none; }
   :root[data-theme="space"] .shot-eink  { display:none; }
 
-  .closing {
-    margin:40px 0 70px; color:var(--dim); font-size:1rem;
-  }
+  .closing { flex:none; margin:0 0 22px; color:var(--dim); font-size:1rem; }
 
-  @media (max-width:600px) {
+  /* Narrow screens: stop cramming two landscape shots onto one screen —
+     stack them and let the page scroll normally. */
+  @media (max-width:820px) {
+    html, body { height:auto; }
+    .wrap { height:auto; }
+    .shots { flex-direction:column; align-items:stretch; }
+    figure img { max-height:none; width:100%; }
     h1 { font-size:1.9rem; }
+    .closing { margin:34px 0 60px; }
   }
 </style>
 </head>
@@ -72,18 +90,21 @@
       <button class="toggle" id="toggle">space</button>
     </header>
 
-    <h1>therefore <span class="sym">&#8756;</span></h1>
-    <p class="intro">A text editor. Native, written in Rust, configured in Lua. Runs on Windows, macOS and Linux.</p>
+    <div class="head">
+      <h1>therefore <span class="sym">&#8756;</span></h1>
+      <p class="intro">A text editor. Native, written in Rust, configured in Lua. Runs on Windows, macOS and Linux.</p>
+    </div>
 
-    <figure>
-      <img class="shot-eink"  src="assets/shots/eink_editor.png"  alt="The therefore editor.">
-      <img class="shot-space" src="assets/shots/space_editor.png" alt="The therefore editor.">
-    </figure>
-
-    <figure>
-      <img class="shot-eink"  src="assets/shots/eink_git.png"  alt="The therefore git window.">
-      <img class="shot-space" src="assets/shots/space_git.png" alt="The therefore git window.">
-    </figure>
+    <div class="shots">
+      <figure>
+        <img class="shot-eink"  src="assets/shots/eink_editor.png"  alt="The therefore editor.">
+        <img class="shot-space" src="assets/shots/space_editor.png" alt="The therefore editor.">
+      </figure>
+      <figure>
+        <img class="shot-eink"  src="assets/shots/eink_git.png"  alt="The therefore git window.">
+        <img class="shot-space" src="assets/shots/space_git.png" alt="The therefore git window.">
+      </figure>
+    </div>
 
     <p class="closing">Nothing else to explain. Designed to work.</p>
 
