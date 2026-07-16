@@ -53,10 +53,25 @@
   h1 .sym { color:var(--dim); font-weight:400; }
   .intro { font-size:1.02rem; line-height:1.55; margin:0; max-width:66ch; }
 
+  /* Per-OS downloads, between the title block and the screenshot. */
+  .downloads {
+    flex:none; display:flex; align-items:baseline; flex-wrap:wrap;
+    gap:.35rem 1.4rem; margin:20px 0 0;
+  }
+  .downloads .label {
+    color:var(--dim); font-size:.78rem; letter-spacing:.09em; text-transform:uppercase;
+  }
+  .downloads a {
+    color:var(--fg); text-decoration:none; font-size:.95rem;
+    border-bottom:1px solid var(--border); padding-bottom:2px;
+  }
+  .downloads a:hover { border-bottom-color:var(--fg); }
+  .downloads a .os-note { color:var(--dim); font-size:.8em; }
+
   /* The card stack. Click (or arrow keys) brings the back card to the front. */
   .stage {
     flex:1 1 auto; min-height:0; position:relative;
-    margin:26px 0 16px; cursor:pointer; outline:none;
+    margin:18px 0 16px; cursor:pointer; outline:none;
   }
   .card {
     position:absolute; inset:0;
@@ -96,7 +111,7 @@
   :root[data-front="git"]    .card[data-view="editor"] .badge { opacity:.75; }
 
   .hint { flex:none; margin:0 0 8px; color:var(--dim); font-size:.82rem; }
-  .closing { flex:none; margin:0 0 20px; color:var(--dim); font-size:1rem; }
+  .closing { flex:none; margin:0 0 40px; color:var(--dim); font-size:1rem; }
 
   /* Narrow screens: drop the stack trick, show both stacked and scroll. */
   @media (max-width:760px) {
@@ -124,6 +139,13 @@
     <div class="head">
       <h1>therefore <span class="sym">&#8756;</span></h1>
       <p class="intro">A text editor. Native, written in Rust, configured in Lua. Runs on Windows, macOS and Linux.</p>
+    </div>
+
+    <div class="downloads">
+      <span class="label">download</span>
+      <a href="#" data-os="windows">windows</a>
+      <a href="#" data-os="macos">macOS</a>
+      <a href="#" data-os="linux">linux</a>
     </div>
 
     <div class="stage" id="stage" tabindex="0" role="button" aria-label="Switch screenshot">
