@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en" data-theme="eink">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>therefore — a native text editor</title>
+<meta name="description" content="therefore is a snappy, native, GPU-rendered text editor. Cross-platform, configured in Lua, and not an Electron app.">
+<style>
+  :root[data-theme="eink"] {
+    --bg:#f7f6f2; --fg:#23211e; --dim:#8a867e; --panel:#eceae4;
+    --cur:#efede7; --border:#c8c4ba; --sel:#9cb0c2;
+    --kw:#8a3b4b; --fn:#375a7a; --ty:#4a6340; --str:#6e5a2e;
+    --com:#9a968c; --num:#744882;
+  }
+  :root[data-theme="space"] {
+    --bg:#0b0e18; --fg:#c9cde4; --dim:#6b7290; --panel:#121624;
+    --cur:#131829; --border:#2a3150; --sel:#2c3557;
+    --kw:#b58ce0; --fn:#6fb2e8; --ty:#58c8c0; --str:#d8a657;
+    --com:#5a6180; --num:#e07b9a;
+  }
+
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body {
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    font-size:18px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    transition:background .25s ease, color .25s ease;
+  }
+  .mono {
+    font-family:"JetBrains Mono",ui-monospace,"SF Mono","Cascadia Code",Consolas,"Liberation Mono",monospace;
+  }
+
+  .wrap { max-width:720px; margin:0 auto; padding:0 28px; }
+
+  /* Top bar */
+  header {
+    display:flex; align-items:baseline; justify-content:space-between;
+    padding:38px 0 0;
+  }
+  .brand { display:flex; align-items:baseline; gap:.55rem; text-decoration:none; color:inherit; }
+  .brand .sym { font-size:1.15rem; color:var(--dim); letter-spacing:.15em; }
+  .brand .name {
+    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
+    font-size:1.05rem; letter-spacing:.02em;
+  }
+  .theme-toggle {
+    background:none; border:1px solid var(--border); color:var(--dim);
+    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
+    font-size:.72rem; letter-spacing:.06em; text-transform:uppercase;
+    padding:.35rem .6rem; border-radius:3px; cursor:pointer;
+    transition:color .2s ease, border-color .2s ease;
+  }
+  .theme-toggle:hover { color:var(--fg); border-color:var(--dim); }
+
+  /* Hero */
+  .hero { padding:76px 0 8px; }
+  h1 {
+    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
+    font-weight:600; font-size:2.5rem; line-height:1.1;
+    margin:0 0 .5rem; letter-spacing:-.01em;
+  }
+  h1 .sym { color:var(--dim); font-weight:400; }
+  .lede { font-size:1.28rem; line-height:1.5; margin:0; max-width:34ch; }
+  .lede .em { font-style:italic; }
+
+  /* Code showcase */
+  .showcase {
+    margin:44px 0 8px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .showcase .bar {
+    display:flex; align-items:center; gap:.6rem;
+    padding:.55rem .85rem;
+    border-bottom:1px solid var(--border);
+    color:var(--dim);
+    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
+    font-size:.72rem; letter-spacing:.04em;
+  }
+  .showcase .bar .dot { width:9px; height:9px; border-radius:50%; background:var(--border); }
+  pre {
+    margin:0; padding:1.15rem 1.25rem 1.35rem;
+    overflow-x:auto;
+    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
+    font-size:.86rem; line-height:1.75;
+    color:var(--fg);
+    counter-reset:ln;
+  }
+  pre .ln { display:block; }
+  pre .ln::before {
+    content:counter(ln); counter-increment:ln;
+    display:inline-block; width:2ch; margin-right:1.6ch;
+    color:var(--dim); text-align:right; opacity:.65;
+    user-select:none;
+  }
+  .kw{color:var(--kw)} .fn{color:var(--fn)} .ty{color:var(--ty)}
+  .str{color:var(--str)} .com{color:var(--com)} .num{color:var(--num)}
+
+  /* Prose sections */
+  section { padding:44px 0; border-top:1px solid var(--border); margin-top:44px; }
+  section:first-of-type { border-top:none; margin-top:24px; }
+  h2 {
+    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
+    font-size:.82rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--dim); margin:0 0 1.1rem;
+  }
+  p { margin:0 0 1rem; }
+  p:last-child { margin-bottom:0; }
+  a { color:inherit; text-decoration:underline; text-underline-offset:2px; text-decoration-color:var(--dim); }
+  a:hover { text-decoration-color:currentColor; }
+
+  .feature { margin:0 0 1.6rem; }
+  .feature:last-child { margin-bottom:0; }
+  .feature h3 {
+    font-size:1.05rem; font-weight:600; margin:0 0 .3rem;
+    font-family:inherit;
+  }
+  .feature p { color:var(--fg); margin:0; }
+
+  /* Command block */
+  .cmds {
+    background:var(--panel); border:1px solid var(--border); border-radius:6px;
+    padding:1rem 1.25rem;
+    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
+    font-size:.84rem; line-height:1.9; overflow-x:auto;
+  }
+  .cmds .c { color:var(--fg); }
+  .cmds .c::before { content:"$ "; color:var(--dim); }
+  .cmds .note { color:var(--com); }
+
+  footer {
+    padding:52px 0 64px; margin-top:44px;
+    border-top:1px solid var(--border);
+    color:var(--dim); font-size:.9rem;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem;
+  }
+  footer .sym { letter-spacing:.15em; }
+
+  @media (max-width:560px) {
+    body { font-size:17px; }
+    h1 { font-size:2rem; }
+    .lede { font-size:1.15rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header>
+      <a class="brand" href="/">
+        <span class="sym">&#8756;</span>
+        <span class="name">therefore</span>
+      </a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">space</button>
+    </header>
+
+    <div class="hero">
+      <h1>therefore <span class="sym">&#8756;</span></h1>
+      <p class="lede">A snappy, native text editor. Every keystroke is <span class="em">zero-latency</span> — and it is not an Electron app.</p>
+    </div>
+
+    <div class="showcase" aria-hidden="true">
+      <div class="bar"><span class="dot"></span> init.lua</div>
+      <pre class="mono"><span class="ln"><span class="com">-- therefore is configured in Lua. Saving applies it live.</span></span><span class="ln"><span class="kw">return</span> {</span><span class="ln">  theme       = <span class="str">"eink"</span>,          <span class="com">-- ink on warm paper</span></span><span class="ln">  font        = <span class="str">"JetBrains Mono"</span>,</span><span class="ln">  font_size   = <span class="num">15</span>,</span><span class="ln">  line_numbers = <span class="kw">true</span>,</span><span class="ln"></span><span class="ln">  keys = {</span><span class="ln">    toggle_git      = <span class="str">"ctrl+shift+g"</span>,</span><span class="ln">    toggle_terminal = <span class="str">"ctrl+`"</span>,</span><span class="ln">  },</span><span class="ln">}</span></pre>
+    </div>
+
+    <section>
+      <h2>What it is</h2>
+      <p>therefore is a text editor drawn on the GPU with <span class="mono">winit</span>, <span class="mono">wgpu</span> and <span class="mono">glyphon</span> — text and every panel, icon and graph line. Editing is local and synchronous, so the cursor never waits. The window idles at 0% CPU and wakes on input.</p>
+      <p>Anything that <span style="font-style:italic">could</span> block — git, SSH, the shell — runs on a background thread and reports back, so it never holds up a keystroke.</p>
+    </section>
+
+    <section>
+      <h2>Features</h2>
+
+      <div class="feature">
+        <h3>Native and fast</h3>
+        <p>No web view, no runtime. A portable build is a single executable — everything therefore needs is compiled in.</p>
+      </div>
+      <div class="feature">
+        <h3>A real git window</h3>
+        <p>A second OS window with the full commit graph, staging, diffs, branches, merging and stashes. Park it on another monitor.</p>
+      </div>
+      <div class="feature">
+        <h3>Embedded terminal</h3>
+        <p>A real PTY in a panel at the bottom of the editor, themed to match. Full ANSI color, drawn with the theme's palette.</p>
+      </div>
+      <div class="feature">
+        <h3>Remote files over SFTP</h3>
+        <p>Open <span class="mono">user@host:/path</span>, edit locally, save back over SSH. Nothing installed on the server, and editing stays as fast as a local file.</p>
+      </div>
+      <div class="feature">
+        <h3>Incremental syntax highlighting</h3>
+        <p>tree-sitter for sixteen languages. A keystroke reparses the edit, not the file, and only the rows on screen are queried.</p>
+      </div>
+      <div class="feature">
+        <h3>Configured in Lua</h3>
+        <p>Themes, fonts, sizes and keybindings in <span class="mono">init.lua</span>. Saving it applies immediately — no restart.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Build &amp; run</h2>
+      <p>Requires a Rust toolchain and a C compiler.</p>
+      <div class="cmds">
+        <div class="c">cargo run                          <span class="note"># scratch buffer</span></div>
+        <div class="c">cargo run -- path/to/file.rs       <span class="note"># a local file</span></div>
+        <div class="c">cargo run -- user@host:/etc/hosts  <span class="note"># remote, over SFTP</span></div>
+      </div>
+    </section>
+
+    <footer>
+      <span><span class="sym">&#8756;</span> therefore</span>
+      <span>native, GPU-rendered, no Electron</span>
+    </footer>
+
+  </div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("themeToggle");
+    var saved = null;
+    try { saved = localStorage.getItem("therefore-theme"); } catch (e) {}
+    if (!saved && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      saved = "space";
+    }
+    if (saved) root.setAttribute("data-theme", saved);
+    function label() {
+      btn.textContent = root.getAttribute("data-theme") === "space" ? "eink" : "space";
+    }
+    label();
+    btn.addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "space" ? "eink" : "space";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("therefore-theme", next); } catch (e) {}
+      label();
+    });
+  })();
+</script>
+</body>
+</html>
