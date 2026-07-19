@@ -29,7 +29,9 @@
     font-size:15px; line-height:1.7;
     -webkit-font-smoothing:antialiased;
     transition:background .2s ease, color .2s ease;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none;
   }
+  img { -webkit-user-drag:none; user-drag:none; }
 
   /* Centered middle-width column. */
   .wrap {
@@ -55,33 +57,59 @@
 
   /* Per-OS downloads, between the title block and the screenshot. */
   .downloads {
-    flex:none; display:flex; align-items:baseline; flex-wrap:wrap;
-    gap:.35rem 1.4rem; margin:20px 0 0;
+    flex:none; display:flex; align-items:center; flex-wrap:wrap;
+    gap:.4rem 1.5rem; margin:20px 0 0;
   }
   .downloads .label {
     color:var(--dim); font-size:.78rem; letter-spacing:.09em; text-transform:uppercase;
   }
-  .downloads a {
-    color:var(--fg); text-decoration:none; font-size:.95rem;
+  .downloads .dl {
+    display:inline-flex; align-items:center; gap:.5rem; font-size:.95rem;
+  }
+  .downloads .ico { width:15px; height:15px; fill:currentColor; flex:none; }
+
+  /* Available (Windows): a real link. */
+  .downloads a.dl {
+    color:var(--fg); text-decoration:none;
     border-bottom:1px solid var(--border); padding-bottom:2px;
   }
-  .downloads a:hover { border-bottom-color:var(--fg); }
-  .downloads a .os-note { color:var(--dim); font-size:.8em; }
+  .downloads a.dl:hover { border-bottom-color:var(--fg); }
 
-  /* The card stack. Click (or arrow keys) brings the back card to the front. */
+  /* Not yet built (macOS, Linux): greyed, with a tooltip on hover. */
+  .downloads .dl.soon { color:var(--dim); cursor:default; position:relative; }
+  .downloads .dl.soon .tip {
+    position:absolute; left:50%; bottom:calc(100% + 9px);
+    transform:translateX(-50%) translateY(4px);
+    background:var(--fg); color:var(--bg);
+    font-size:.72rem; letter-spacing:.03em; white-space:nowrap;
+    padding:.3rem .55rem; border-radius:4px;
+    opacity:0; pointer-events:none;
+    transition:opacity .14s ease, transform .14s ease;
+  }
+  .downloads .dl.soon .tip::after {
+    content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+    border:5px solid transparent; border-top-color:var(--fg);
+  }
+  .downloads .dl.soon:hover .tip { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* The card stack. Click (or arrow keys) brings the back card to the front.
+     The stage takes the image's aspect ratio so it hugs the image with no
+     dead space; the leftover height stays as plain background around it. */
+  .stagearea {
+    flex:1 1 0; min-height:0; margin:14px 0 10px;
+    display:flex; align-items:center; justify-content:center;
+  }
   .stage {
-    flex:1 1 auto; min-height:0; position:relative;
-    margin:18px 0 16px; cursor:pointer; outline:none;
+    position:relative; cursor:pointer; outline:none;
+    max-width:100%; max-height:100%;   /* exact size set by JS to hug the image */
   }
   .card {
     position:absolute; inset:0;
-    display:flex; align-items:center; justify-content:center;
     transition:transform .5s cubic-bezier(.2,.75,.2,1), opacity .4s ease, filter .4s ease;
     will-change:transform;
   }
-  .card .frame { position:relative; }
   .card img {
-    display:none; max-width:100%; max-height:100%; width:auto; height:auto;
+    display:none; width:100%; height:100%; object-fit:contain;
     border:1px solid var(--border); border-radius:6px;
     box-shadow:0 14px 40px var(--shadow);
   }
@@ -111,16 +139,17 @@
   :root[data-front="git"]    .card[data-view="editor"] .badge { opacity:.75; }
 
   .hint { flex:none; margin:0 0 8px; color:var(--dim); font-size:.82rem; }
-  .closing { flex:none; margin:0 0 40px; color:var(--dim); font-size:1rem; }
+  .closing { flex:none; margin:0 0 72px; color:var(--dim); font-size:1rem; }
 
   /* Narrow screens: drop the stack trick, show both stacked and scroll. */
   @media (max-width:760px) {
     html, body { height:auto; }
     .wrap { height:auto; }
-    .stage { position:static; height:auto; cursor:default; margin:22px 0 0; }
-    .card { position:static; display:block; transform:none!important;
+    .stagearea { display:block; flex:none; margin:22px 0 0; }
+    .stage { position:static; height:auto; aspect-ratio:auto; max-width:none; cursor:default; }
+    .card { position:static; transform:none!important;
             opacity:1!important; filter:none!important; margin-bottom:18px; }
-    .card img { width:100%; max-height:none; }
+    .card img { width:100%; height:auto; }
     .badge { top:8px; left:10px; }
     .hint { display:none; }
     h1 { font-size:1.8rem; }
@@ -143,21 +172,42 @@
 
     <div class="downloads">
       <span class="label">download</span>
-      <a href="#" data-os="windows">windows</a>
-      <a href="#" data-os="macos">macOS</a>
-      <a href="#" data-os="linux">linux</a>
+
+      <a class="dl" href="#" data-os="windows">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/>
+          <rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/>
+        </svg>
+        <span>windows</span>
+      </a>
+
+      <span class="dl soon" data-os="macos">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.037 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
+        </svg>
+        <span>macOS</span>
+        <span class="tip">Coming Soon!</span>
+      </span>
+
+      <span class="dl soon" data-os="linux">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14.62 8.35c-.42.28-1.75 1.04-1.95 1.19-.39.29-.75.15-.9-.06-.19-.25-.13-.6-.13-.9 0-.31.09-.46.24-.63.6-.66.9-1.05 1.05-1.35.15-.29.09-.6-.06-.79-.15-.19-.45-.24-.75-.09z"/>
+          <path d="M12.5 2c-2.2 0-3.6 1.7-3.6 4.2 0 1.4.3 2.2.3 3.2 0 .9-.6 1.6-1.2 2.4-.7.9-1.5 1.9-2 3.1-.3.7-.4 1.4-.3 2 0 .1-.1.2-.1.3-.2.2-.4.5-.6.7-.2.2-.5.3-.8.4-.3.1-.6.3-.7.6-.1.2 0 .5 0 .7 0 .3.1.5 0 .7-.2.6-.2.9-.1 1.2.2.3.5.4.9.5.7.2 1.6.1 2.3.5.7.4 1.5.6 2.1.4.5-.1.8-.4 1-.8.5 0 1.1-.3 2-.3.6-.1 1.4.2 2.3.2 0 .1 0 .2.1.3.3.6.9.9 1.5.9.6-.1 1.3-.5 1.8-1.1.5-.6 1.4-.9 1.9-1.2.4-.2.6-.5.6-.8 0-.3-.2-.6-.6-1v-.1c-.1-.2-.2-.4-.3-.7-.1-.3-.1-.6-.4-.8-.1 0-.1-.1-.2-.1.3-1 .2-2-.1-2.9-.4-1.1-1.2-2.1-1.7-2.7-.6-.8-1.2-1.5-1.2-2.6C15.7 5.6 15.9 2 12.5 2z"/>
+          <circle cx="10.4" cy="6.6" r=".9"/><circle cx="13.7" cy="6.6" r=".9"/>
+        </svg>
+        <span>linux</span>
+        <span class="tip">Coming Soon!</span>
+      </span>
     </div>
 
-    <div class="stage" id="stage" tabindex="0" role="button" aria-label="Switch screenshot">
-      <div class="card" data-view="git">
-        <div class="frame">
+    <div class="stagearea">
+      <div class="stage" id="stage" tabindex="0" role="button" aria-label="Switch screenshot">
+        <div class="card" data-view="git">
           <img class="t-eink"  src="assets/shots/eink_git.png"  alt="The therefore git window.">
           <img class="t-space" src="assets/shots/space_git.png" alt="The therefore git window.">
           <span class="badge">git</span>
         </div>
-      </div>
-      <div class="card" data-view="editor">
-        <div class="frame">
+        <div class="card" data-view="editor">
           <img class="t-eink"  src="assets/shots/eink_editor.png"  alt="The therefore editor.">
           <img class="t-space" src="assets/shots/space_editor.png" alt="The therefore editor.">
           <span class="badge">editor</span>
@@ -201,6 +251,24 @@
       if (e.key === "Enter" || e.key === " " || e.key === "ArrowLeft" || e.key === "ArrowRight") {
         e.preventDefault(); flip();
       }
+    });
+
+    // Size the stage to the largest image-shaped box that fits the space it's
+    // given, so the card hugs the screenshot with no dead area around it.
+    var area = document.querySelector(".stagearea"), AR = 3838 / 2098;
+    function sizeStage() {
+      if (window.matchMedia("(max-width:760px)").matches) { stage.style.width = ""; stage.style.height = ""; return; }
+      var w = area.clientWidth, h = area.clientHeight;
+      if (!w || !h) return;
+      var sw = Math.min(w, h * AR);
+      stage.style.width = Math.round(sw) + "px";
+      stage.style.height = Math.round(sw / AR) + "px";
+    }
+    sizeStage();
+    window.addEventListener("resize", sizeStage);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeStage);
+    document.querySelectorAll(".card img").forEach(function (im) {
+      if (!im.complete) im.addEventListener("load", sizeStage, { once: true });
     });
   })();
 </script>
