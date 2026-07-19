@@ -259,8 +259,10 @@
     var area = document.querySelector(".stagearea"), AR = 3838 / 2098;
     function sizeStage() {
       if (window.matchMedia("(max-width:760px)").matches) { stage.style.width = ""; stage.style.height = ""; return; }
-      var w = area.clientWidth, h = area.clientHeight;
-      if (!w || !h) return;
+      // Leave room for the back card's 34px down-nudge (centred, so both
+      // sides) so it can't poke into the text below on short screens.
+      var w = area.clientWidth, h = area.clientHeight - 72;
+      if (!w || h <= 0) return;
       var sw = Math.min(w, h * AR);
       stage.style.width = Math.round(sw) + "px";
       stage.style.height = Math.round(sw / AR) + "px";
