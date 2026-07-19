@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en" data-theme="space">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>therefore &#8756; docs</title>
+<meta name="description" content="How to use therefore — the editor, the git window, the terminal, SSH, and every init.lua config option.">
+<style>
+  @font-face {
+    font-family:"JetBrains Mono";
+    src:url("assets/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+    font-weight:400; font-style:normal; font-display:swap;
+  }
+  @font-face {
+    font-family:"JetBrains Mono";
+    src:url("assets/fonts/JetBrainsMono-Bold.ttf") format("truetype");
+    font-weight:600 700; font-style:normal; font-display:swap;
+  }
+
+  :root[data-theme="eink"]  { --bg:#f7f6f2; --fg:#23211e; --dim:#8a867e; --border:#c8c4ba; --panel:#eceae4; --shadow:rgba(40,36,30,.18); --accent:#7a5a3a; }
+  :root[data-theme="space"] { --bg:#0b0e18; --fg:#c9cde4; --dim:#6b7290; --border:#2a3150; --panel:#121624; --shadow:rgba(0,0,0,.45); --accent:#8fa3ff; }
+
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; scroll-behavior:smooth; scroll-padding-top:82px; }
+  body {
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:"JetBrains Mono",ui-monospace,"SF Mono",Consolas,monospace;
+    font-size:15px; line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    transition:background .2s ease, color .2s ease;
+  }
+  img { max-width:100%; }
+  a { color:inherit; }
+
+  .wrap { width:100%; max-width:900px; margin:0 auto; padding:0 28px; }
+
+  /* Sticky header, mirrors the landing page. */
+  header {
+    position:sticky; top:0; z-index:10;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 0 13px; margin-bottom:2px;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+  }
+  .brand { display:flex; align-items:baseline; gap:.5rem; text-decoration:none; color:inherit; }
+  .brand .sym { color:var(--dim); letter-spacing:.15em; }
+  .brand .name { font-size:1.05rem; }
+  .brand .crumb { color:var(--dim); font-size:.86rem; }
+  .hgroup { display:flex; align-items:center; gap:1.1rem; }
+  .hgroup a.home { color:var(--dim); text-decoration:none; font-size:.82rem; }
+  .hgroup a.home:hover { color:var(--fg); }
+
+  /* Title block */
+  .lede { margin:40px 0 6px; }
+  h1 { font-weight:600; font-size:2rem; margin:0 0 .5rem; letter-spacing:-.01em; }
+  h1 .sym { color:var(--dim); font-weight:400; }
+  .lede p { font-size:1.02rem; line-height:1.55; margin:0; color:var(--fg); }
+  .lede p.sub { color:var(--dim); margin-top:.5rem; }
+  .lede p.quicklinks { display:flex; align-items:center; gap:.9rem; flex-wrap:wrap; margin:28px 0 6px; }
+  .pill {
+    display:inline-flex; align-items:center; gap:.4rem; text-decoration:none;
+    color:var(--fg); background:var(--panel); border:1px solid var(--border);
+    border-radius:6px; padding:.4rem .8rem; font-size:.9rem; white-space:nowrap;
+  }
+  .pill:hover { border-color:var(--accent); color:var(--accent); }
+  .quicklinks .muted { font-size:.85rem; }
+
+  /* Table of contents */
+  nav.toc {
+    margin:34px 0 10px; padding:18px 22px;
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+  }
+  nav.toc .t { color:var(--dim); font-size:.72rem; letter-spacing:.11em; text-transform:uppercase; margin-bottom:10px; }
+  nav.toc ol {
+    list-style:none; margin:0; padding:0; counter-reset:toc;
+    columns:2; column-gap:34px;
+  }
+  nav.toc li { break-inside:avoid; margin:.18rem 0; }
+  nav.toc a { text-decoration:none; color:var(--fg); font-size:.92rem; }
+  nav.toc a::before { counter-increment:toc; content:counter(toc,decimal-leading-zero)"  "; color:var(--dim); }
+  nav.toc a:hover { color:var(--accent); }
+
+  /* Sections */
+  section { padding-top:40px; }
+  h2 {
+    font-size:1.35rem; font-weight:600; letter-spacing:-.01em;
+    margin:0 0 4px; padding-bottom:10px; border-bottom:1px solid var(--border);
+    scroll-margin-top:82px;
+  }
+  h2 .n { color:var(--dim); font-weight:400; font-size:1rem; margin-right:.5rem; }
+  h3 { font-size:1.02rem; font-weight:600; margin:26px 0 6px; }
+  p { margin:12px 0; }
+  .muted { color:var(--dim); }
+  strong { font-weight:600; }
+  ul { margin:12px 0; padding-left:1.3rem; }
+  li { margin:.28rem 0; }
+
+  /* Inline + block code */
+  code {
+    font-family:inherit; font-size:.86em;
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:4px; padding:.06em .38em;
+  }
+  kbd {
+    font-family:inherit; font-size:.8em;
+    background:var(--panel); border:1px solid var(--border);
+    border-bottom-width:2px; border-radius:5px; padding:.08em .42em;
+    white-space:nowrap;
+  }
+  pre {
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    padding:16px 18px; overflow-x:auto; margin:16px 0; line-height:1.6;
+  }
+  pre code { background:none; border:none; padding:0; font-size:.86rem; }
+  .cmt { color:var(--dim); }
+
+  /* Figures — dark screenshots framed on any theme */
+  figure {
+    margin:20px 0; border:1px solid var(--border); border-radius:8px;
+    overflow:hidden; box-shadow:0 10px 30px var(--shadow); background:#0b0e18;
+  }
+  figure img { display:block; width:100%; }
+  /* Cropped strips look better centered on their own dark mat */
+  figure.strip { background:#0b0e18; padding:18px 20px; }
+  figure.strip.pad-lg { padding:26px 24px; }
+  figure.strip img { width:auto; max-width:100%; margin:0 auto; }
+  figcaption {
+    font-size:.82rem; color:var(--dim); line-height:1.5;
+    padding:10px 16px; background:var(--panel); border-top:1px solid var(--border);
+  }
+  figure.strip figcaption { margin:18px -20px -18px; }
+  figure.strip.pad-lg figcaption { margin:26px -24px -26px; }
+
+  /* Theme-swapping hero shots (mirror the landing page trick) */
+
+  /* Two-up small figures */
+  .figrow { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0; }
+  .figrow figure { margin:0; }
+  /* A tall, narrow shot beside explanatory text. */
+  .figrow-side { grid-template-columns:minmax(180px,240px) 1fr; align-items:start; gap:26px; }
+
+  /* Tables */
+  .tablewrap { overflow-x:auto; margin:16px 0; border:1px solid var(--border); border-radius:8px; }
+  table { border-collapse:collapse; width:100%; font-size:.9rem; }
+  th, td { text-align:left; padding:8px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+  thead th { color:var(--dim); font-weight:600; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase; background:var(--panel); }
+  tbody tr:last-child td { border-bottom:none; }
+  td code { white-space:nowrap; }
+  td:first-child code { color:var(--accent); }
+  .opt-default { color:var(--dim); white-space:nowrap; }
+
+  /* Callout */
+  .note {
+    margin:18px 0; padding:12px 16px; border-left:3px solid var(--accent);
+    background:var(--panel); border-radius:0 6px 6px 0; font-size:.92rem;
+  }
+  .note .lbl { color:var(--accent); font-weight:600; letter-spacing:.03em; }
+
+  /* Footer */
+  footer {
+    margin:60px 0 70px; padding-top:24px; border-top:1px solid var(--border);
+    color:var(--dim); font-size:.9rem;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+  footer a { color:var(--dim); text-decoration:none; border-bottom:1px solid var(--border); }
+  footer a:hover { color:var(--fg); border-bottom-color:var(--fg); }
+
+  @media (max-width:680px) {
+    nav.toc ol { columns:1; }
+    .figrow { grid-template-columns:1fr; }
+    h1 { font-size:1.7rem; }
+    .brand .crumb { display:none; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;padding:0;max-width:900px;">
+      <a class="brand" href="index.html">
+        <span class="sym">&#8756;</span><span class="name">therefore</span>
+        <span class="crumb">/ docs</span>
+      </a>
+      <div class="hgroup">
+        <a class="home" href="index.html">&#8592; home</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <div class="lede">
+      <h1>Documentation <span class="sym">&#8756;</span></h1>
+      <p>A native text editor with version control built in — written in Rust, configured in Lua.
+      This page walks through the editor, the git window, the terminal and SSH, and lists every
+      <code>init.lua</code> option, keybinding and theme colour.</p>
+      <p class="quicklinks">
+        <a class="pill" href="therefore-config-example.lua">&#8756; full example config &#8594;</a>
+        <span class="muted">every setting, in one commented <code>init.lua</code></span>
+      </p>
+    </div>
+
+    <nav class="toc">
+      <div class="t">Contents</div>
+      <ol>
+        <li><a href="#install">Install &amp; first launch</a></li>
+        <li><a href="#editor">The editor</a></li>
+        <li><a href="#tree">File tree &amp; folders</a></li>
+        <li><a href="#tabs">Tabs</a></li>
+        <li><a href="#statusbar">The status bar</a></li>
+        <li><a href="#terminal">The terminal</a></li>
+        <li><a href="#git">The git window</a></li>
+        <li><a href="#markdown">Markdown preview</a></li>
+        <li><a href="#ssh">Remote files over SSH</a></li>
+        <li><a href="#config">Configuration &amp; init.lua</a></li>
+        <li><a href="#options">All config options</a></li>
+        <li><a href="#keys">Keybindings</a></li>
+        <li><a href="#themes">Themes</a></li>
+      </ol>
+    </nav>
+
+    <!-- ───────────────────────── INSTALL ───────────────────────── -->
+    <section id="install">
+      <h2><span class="n">01</span>Install &amp; first launch</h2>
+      <p>Download the installer from the <a href="index.html">home page</a> and run it. Windows is
+      available now; macOS and Linux are on the way.</p>
+      <p>On first launch you get an empty buffer — point the file tree at a project with
+      <kbd>Ctrl</kbd>+<kbd>O</kbd>, or just start typing. therefore is <strong>single-instance</strong>:
+      set it as your default editor and opening a file hands it to the running window as a new tab and
+      raises it, rather than launching a second copy. Your window position, working directory and open
+      tabs are remembered and restored next launch.</p>
+      <div class="note"><span class="lbl">Git</span> — the git window drives the <code>git</code>
+      already installed on your system. If <code>git</code> isn't installed (or isn't on your
+      <code>PATH</code>), the window says so rather than failing; everything else works without it.</div>
+    </section>
+
+    <!-- ───────────────────────── EDITOR ───────────────────────── -->
+    <section id="editor">
+      <h2><span class="n">02</span>The editor</h2>
+      <p>The main window is a file tree on the left, tabs and your text in the middle, a status bar
+      along the bottom, and the window controls (plus the <span class="sym">&#8756;</span> config
+      button) top-right.</p>
+      <figure>
+        <img src="assets/shots/space_editor.png" alt="The therefore editor.">
+        <figcaption>The editor. Tree left, tabs and buffer centre, status bar bottom. Syntax highlighting is incremental tree-sitter — a keystroke reparses the edit, not the file.</figcaption>
+      </figure>
+      <p>Drag the empty tab-bar area to move the window, drag any edge to resize, and use the
+      minimize / maximize / close buttons by the <span class="sym">&#8756;</span> logo. If a file is
+      changed by another program while it's open, therefore reloads it on focus when you have no
+      unsaved edits; if you do, it warns before overwriting on save.</p>
+
+      <figure class="strip">
+        <img src="assets/shots/docs/topRight.png" alt="Top-right window controls: config button, minimize, maximize, close.">
+        <figcaption>Top-right: the <span class="sym">&#8756;</span> button opens your <code>init.lua</code> in a tab (created from a template on first open), then minimize / maximize / close.</figcaption>
+      </figure>
+      <p><strong>Right-click</strong> a file, a folder or a tab for a context menu. Delete asks first
+      via an in-app confirmation dialog — folder delete is recursive. <kbd>Ctrl</kbd> + <kbd>=</kbd> /
+      <kbd>-</kbd> / <kbd>0</kbd> (or <kbd>Ctrl</kbd>+wheel) zooms.</p>
+    </section>
+
+    <!-- ───────────────────────── TREE ───────────────────────── -->
+    <section id="tree">
+      <h2><span class="n">03</span>File tree &amp; folders</h2>
+      <p>The tree browses local or remote directories. The first row is the <strong>current
+      directory</strong> — click it (or press <kbd>Ctrl</kbd>+<kbd>O</kbd>) to change directory;
+      <code>&#8249; ..</code> goes up a level. Changed files and folders get a coloured git dot.</p>
+      <div class="figrow">
+        <figure class="strip">
+          <img src="assets/shots/docs/editorLeftTab.png" alt="The editor file tree.">
+          <figcaption>The file tree: current directory on top, then <code>&#8249; ..</code>, folders, then files.</figcaption>
+        </figure>
+        <div>
+          <ul>
+            <li><strong>Single-click a folder</strong> to expand/collapse it; <strong>double-click its name</strong> to descend into it (re-roots the tree). Double-clicking the arrow only expands, so you can't fall into a folder by accident.</li>
+            <li><strong>Single-click a file</strong> to open it — already-open files just switch to their tab, no duplicates. <strong>Double-click a file</strong> to rename it in place (moves it on disk, or over SFTP).</li>
+            <li>Going up past a drive root shows the <strong>drives / volumes</strong> list, so you can hop between them.</li>
+          </ul>
+        </div>
+      </div>
+      <p>Changing directory opens an <strong>in-app folder browser</strong> — an in-theme modal that
+      works for both local and remote directories. Navigate by clicking; <em>Open</em> re-roots the
+      tree. Set <code>native_file_dialog = true</code> to use your OS's picker instead (local only).</p>
+      <figure class="strip">
+        <img src="assets/shots/docs/fileChooser.png" alt="The in-app folder browser modal, listing folders with Cancel and Open buttons.">
+        <figcaption>The folder browser. Click a row to step in, <code>..</code> to go up; <em>Open</em> re-roots the tree to that folder.</figcaption>
+      </figure>
+      <p class="muted">Scrollbars appear on the editor and tree when content overflows; they widen on
+      hover and can be dragged.</p>
+    </section>
+
+    <!-- ───────────────────────── TABS ───────────────────────── -->
+    <section id="tabs">
+      <h2><span class="n">04</span>Tabs</h2>
+      <figure class="strip pad-lg">
+        <img src="assets/shots/docs/tabs.png" alt="The tab bar: a reload glyph, a markdown-preview glyph, and a tab being renamed inline.">
+        <figcaption>Left to right: <code>init.lua</code> with a <strong>reload</strong> glyph (&#8635;) and close (&times;); <code>README.md</code> with the markdown <strong>preview</strong> toggle (&#8801;); and a new tab being <strong>renamed inline</strong>.</figcaption>
+      </figure>
+      <ul>
+        <li><strong>Drag a tab left/right to reorder</strong> it — the others slide out of the way.</li>
+        <li><strong>Double-click a tab to rename it in place</strong>; double-click empty tab-bar space to create a <strong>new tab</strong> and name it inline. Enter confirms, Esc cancels, clicking away confirms. Renaming moves the file on disk (or over SFTP).</li>
+        <li><kbd>Ctrl</kbd>+<kbd>W</kbd> closes a tab (or click the <span aria-hidden="true">&times;</span>); <kbd>Ctrl</kbd>+<kbd>Tab</kbd> cycles.</li>
+        <li>On a <code>.md</code> tab the eye/&#8801; glyph toggles source &#8596; rendered preview (also <kbd>Ctrl</kbd>+<kbd>E</kbd>).</li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── STATUS BAR ───────────────────────── -->
+    <section id="statusbar">
+      <h2><span class="n">05</span>The status bar</h2>
+      <p>The bar along the bottom shows, left to right, the active <strong>theme</strong>, the current
+      <strong>file</strong>, the <strong>line:column</strong>, and the current <strong>branch</strong>.
+      At the far right are two launch buttons.</p>
+      <figure class="strip pad-lg">
+        <img src="assets/shots/docs/statusbar.png" alt="The status bar: theme, filename, line and column, branch on the left; terminal and git-window buttons on the right.">
+        <figcaption>Left: theme &middot; file &middot; line:col &middot; branch. Right: the <strong>terminal</strong> button (&#9002;_) toggles the shell panel, and the <strong>commit-node</strong> button opens the git window.</figcaption>
+      </figure>
+      <p>Those two right-hand icons are the quickest way in: the terminal button is the same as
+      <kbd>Ctrl</kbd>+<kbd>`</kbd>, and the commit-node button is the same as
+      <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>. In the editor, changed line numbers are tinted in
+      the gutter so you can see your edits at a glance.</p>
+    </section>
+
+    <!-- ───────────────────────── TERMINAL ───────────────────────── -->
+    <section id="terminal">
+      <h2><span class="n">06</span>The terminal</h2>
+      <p><kbd>Ctrl</kbd>+<kbd>`</kbd> (or the terminal button on the status bar) shows a real shell in
+      a panel at the bottom of the editor. It's a genuine PTY — full ANSI colour, drawn with the
+      theme's 16-colour palette. Drag its top edge to resize. It <strong>persists while hidden</strong>,
+      so toggling it away doesn't kill your session.</p>
+      <figure class="strip">
+        <img src="assets/shots/docs/terminal.png" alt="The embedded terminal panel with its own tab strip and a shell prompt.">
+        <figcaption>The terminal panel. Its own tab strip lets you keep several shells; <code>+</code> opens another. In an SSH session it opens a shell on the remote host instead of a local one.</figcaption>
+      </figure>
+      <p>Set <code>terminal_shell</code> to pick the program — the default is your OS shell
+      (<code>cmd.exe</code> on Windows, <code>$SHELL</code> elsewhere). For example
+      <code>terminal_shell = "pwsh"</code>. Height is set by <code>terminal_height</code> (also
+      draggable).</p>
+    </section>
+
+    <!-- ───────────────────────── GIT ───────────────────────── -->
+    <section id="git">
+      <h2><span class="n">07</span>The git window</h2>
+      <p>A separate OS window — a graphical git client for the repo you're editing. Open it with
+      <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> or the commit-node button on the status bar. It's a
+      real second window, so you can park it on another monitor. All git work shells out to the
+      <code>git</code> CLI on a background thread; outside a repo, or with no <code>git</code> on
+      <code>PATH</code>, the window says so rather than failing.</p>
+      <figure>
+        <img src="assets/shots/space_git.png" alt="The therefore git window.">
+        <figcaption>The git window in <strong>History</strong> view — every commit as a row with the branch topology drawn as a coloured graph down the left. Columns (message, author, date, hash) drag to resize.</figcaption>
+      </figure>
+
+      <h3>The toolbar</h3>
+      <p>The toolbar across the top holds every action, with badges showing how many commits are
+      waiting to push/pull.</p>
+      <figure class="strip pad-lg">
+        <img src="assets/shots/docs/gittoolbar.png" alt="The git toolbar: Commit, Fetch, Pull, Push, Branch, Merge, Stash, Discard, Tag.">
+        <figcaption>Commit, Fetch, Pull, Push, Branch, Merge, Stash, Discard, Tag.</figcaption>
+      </figure>
+
+      <h3>The sidebar</h3>
+      <div class="figrow figrow-side">
+        <figure class="strip">
+          <img src="assets/shots/docs/gitLeftTab.png" alt="The git window sidebar: File Status and History tabs, then Branches, Remotes, Tags, Stashes, Submodules.">
+          <figcaption>The dot marks the checked-out branch.</figcaption>
+        </figure>
+        <div>
+          <p style="margin-top:0">The left sidebar switches between <strong>File Status</strong> (your
+          working-tree changes) and <strong>History</strong> (the commit graph). Below that it lists
+          the repo's <strong>Branches</strong>, <strong>Remotes</strong>, <strong>Tags</strong>,
+          <strong>Stashes</strong> and <strong>Submodules</strong> — click any to jump to it.</p>
+        </div>
+      </div>
+
+      <h3>Staging &amp; committing</h3>
+      <p>The <strong>File Status</strong> view puts working-tree changes on the left — staged above
+      unstaged — with the diff of the selected file beside them. Check files to stage them, or use the
+      classic selection modifiers (<kbd>Shift</kbd> for a range, <kbd>Ctrl</kbd> to toggle one) to grab
+      several at once. Write your message at the bottom and hit <strong>Commit</strong>.</p>
+      <figure>
+        <img src="assets/shots/docs/staging.png" alt="File Status: staged and unstaged panels with per-file stage buttons, a diff on the right, a message box, and Push-after-commit / Amend checkboxes.">
+        <figcaption>File Status. <em>Stage All</em> / <em>Stage Selected</em> (and the per-row <code>+</code>/<code>-</code>) move files between panels; the diff shows on the right. <strong>Push after commit</strong> and <strong>Amend last commit</strong> sit beside the Commit button.</figcaption>
+      </figure>
+      <ul>
+        <li><strong>History</strong> — select a commit to see its diff. <code>git_history_all_branches = false</code> narrows the view to the current branch only.</li>
+        <li><strong>Merge</strong> — opens a picker (the same history view in a modal); pick the commit to merge by selecting its row. <em>Commit merge immediately (if no conflicts)</em> does the obvious thing; on conflict the clean files are staged and the conflicted ones are left for you.</li>
+        <li><strong>Conflicts</strong> — conflicted files during a merge are coloured to stand out and stay unstaged until you resolve them.</li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── MARKDOWN ───────────────────────── -->
+    <section id="markdown">
+      <h2><span class="n">08</span>Markdown preview</h2>
+      <p>Toggle a <code>.md</code> tab between source and rendered view with the eye/&#8801; glyph on
+      the tab, or <kbd>Ctrl</kbd>+<kbd>E</kbd>. Set the default view for markdown files with
+      <code>md_view = "edit"</code> (the default) or <code>"preview"</code>.</p>
+    </section>
+
+    <!-- ───────────────────────── SSH ───────────────────────── -->
+    <section id="ssh">
+      <h2><span class="n">09</span>Remote files over SSH</h2>
+      <p>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>O</kbd> and type a target — <code>user@host</code>
+      (browses the server's home) or <code>user@host:/path</code> — to open a remote file, edit it
+      locally, and save back over SSH. Nothing is installed on the server, and editing a remote file
+      feels exactly like a local one; the network is only touched on connect, open and save. You can
+      also point at a <code>~/.ssh/config</code> host alias, e.g. <code>myserver:/srv/app/main.rs</code>.</p>
+      <p><strong>Auth</strong> — <code>~/.ssh/config</code> is honoured for a bare
+      <code>alias:/path</code> target (<code>HostName</code>, <code>User</code>, <code>Port</code>,
+      <code>IdentityFile</code>, with <code>*</code>/<code>?</code> wildcards). Methods are tried in
+      order: <code>THEREFORE_SSH_PASSWORD</code> &#8594; <code>THEREFORE_SSH_KEY</code> (a private-key
+      path) &#8594; the config's <code>IdentityFile</code> &#8594; the ssh-agent
+      (<code>SSH_AUTH_SOCK</code>) &#8594; the default keys in <code>~/.ssh</code>. Passphrase-protected
+      key <em>files</em> aren't decrypted — add them to your agent.</p>
+      <p><strong>Host keys</strong> — verified against <code>~/.ssh/known_hosts</code>. A first-seen
+      host prompts for its SHA-256 fingerprint and is remembered on accept (like <code>ssh</code>'s
+      <code>accept-new</code>). If a recorded key later changes, the mismatch is flagged loudly. Saves
+      are atomic (temp file renamed over the target), so a mid-write disconnect can't truncate the
+      remote file.</p>
+    </section>
+
+    <!-- ───────────────────────── CONFIG ───────────────────────── -->
+    <section id="config">
+      <h2><span class="n">10</span>Configuration &amp; init.lua</h2>
+      <p>Click the <span class="sym">&#8756;</span> button (top-right) to open your <code>init.lua</code>
+      in a tab — it's created from a template on first open. <strong>Saving it applies the config
+      immediately</strong>: theme, fonts, sizes, undo policy and keybinds all update in real time, no
+      restart.</p>
+      <p>It lives at <code>&lt;config-dir&gt;/therefore/init.lua</code>:</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>OS</th><th>Path</th></tr></thead>
+          <tbody>
+            <tr><td>Windows</td><td><code>%APPDATA%\therefore\init.lua</code></td></tr>
+            <tr><td>Linux</td><td><code>~/.config/therefore/init.lua</code></td></tr>
+            <tr><td>macOS</td><td><code>~/Library/Application Support/therefore/init.lua</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The script returns a table; <strong>everything in it is optional</strong>. A bad config prints
+      an error and falls back to defaults — it won't stop the editor starting. A minimal example:</p>
+      <pre><code><span class="cmt">-- therefore ∴ — your config. Saving this file applies it immediately.</span>
+return {
+  theme = <span style="color:var(--accent)">"eink"</span>,   <span class="cmt">-- eink, space, forest, deep_ocean, mars, or your own</span>
+  font_size = 15,
+  tab_width = 4,
+  line_numbers = true,
+
+  <span class="cmt">-- terminal_shell = "pwsh",  -- default is the OS shell</span>
+
+  keys = {
+    save = <span style="color:var(--accent)">"ctrl+s"</span>,
+    find = <span style="color:var(--accent)">"ctrl+f"</span>,
+  },
+}</code></pre>
+      <p>Your config dir is on Lua's <code>package.path</code> and <code>config_dir</code> holds the
+      path, so you can split things across files:</p>
+      <pre><code>theme = require(<span style="color:var(--accent)">"mytheme"</span>)            <span class="cmt">-- &lt;config&gt;/mytheme.lua</span>
+local keys = dofile(config_dir .. <span style="color:var(--accent)">"/keys.lua"</span>)</code></pre>
+    </section>
+
+    <!-- ───────────────────────── OPTIONS ───────────────────────── -->
+    <section id="options">
+      <h2><span class="n">11</span>All config options</h2>
+      <p>Every top-level key you can put in the returned table. Leave one out to get its default.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Option</th><th>Default</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>theme</code></td><td class="opt-default">"eink"</td><td>a bundled name, a table, or <code>require("yours")</code></td></tr>
+            <tr><td><code>font</code></td><td class="opt-default">JetBrains Mono</td><td>editor font, by family name</td></tr>
+            <tr><td><code>ui_font</code></td><td class="opt-default">JetBrains Mono</td><td>tree / tabs / status / menus</td></tr>
+            <tr><td><code>font_size</code></td><td class="opt-default">15</td><td></td></tr>
+            <tr><td><code>line_height</code></td><td class="opt-default">font_size&nbsp;&times;&nbsp;1.47</td><td>editor line height, px</td></tr>
+            <tr><td><code>tab_width</code></td><td class="opt-default">4</td><td>indentation width, in spaces</td></tr>
+            <tr><td><code>tab_bar_width</code></td><td class="opt-default">150</td><td>width of each tab, px</td></tr>
+            <tr><td><code>tab_bar_height</code></td><td class="opt-default">30</td><td>height of the tab bar, px</td></tr>
+            <tr><td><code>line_numbers</code></td><td class="opt-default">true</td><td>show the gutter</td></tr>
+            <tr><td><code>find_case</code></td><td class="opt-default">"smart"</td><td>or <code>"sensitive"</code>, <code>"insensitive"</code>. Smart = insensitive until you type a capital</td></tr>
+            <tr><td><code>tree_width</code></td><td class="opt-default">220</td><td>file-tree width, px (a dragged width wins)</td></tr>
+            <tr><td><code>terminal_height</code></td><td class="opt-default">220</td><td>terminal panel height, px (draggable)</td></tr>
+            <tr><td><code>terminal_shell</code></td><td class="opt-default">OS shell</td><td>e.g. <code>"pwsh"</code>, <code>"bash"</code>, <code>"/usr/bin/fish"</code></td></tr>
+            <tr><td><code>cursor_blink</code></td><td class="opt-default">true</td><td>false = solid caret</td></tr>
+            <tr><td><code>cursor_blink_ms</code></td><td class="opt-default">530</td><td>blink half-period</td></tr>
+            <tr><td><code>undo_break_newline</code></td><td class="opt-default">true</td><td>Enter starts a new undo group</td></tr>
+            <tr><td><code>undo_timeout_ms</code></td><td class="opt-default">none</td><td>pausing this long starts a new undo group</td></tr>
+            <tr><td><code>zoom_step</code></td><td class="opt-default">0.1</td><td>per Ctrl+wheel notch</td></tr>
+            <tr><td><code>zoom</code></td><td class="opt-default">1.0</td><td>initial zoom, if no saved session</td></tr>
+            <tr><td><code>md_view</code></td><td class="opt-default">"edit"</td><td>or <code>"preview"</code> — default view for <code>.md</code></td></tr>
+            <tr><td><code>native_file_dialog</code></td><td class="opt-default">false</td><td>true = OS folder picker (local only)</td></tr>
+            <tr><td><code>animations</code></td><td class="opt-default">true</td><td>picker entrance, tab-reorder slide</td></tr>
+            <tr><td><code>tab_reorder</code></td><td class="opt-default">true</td><td>drag tabs to reorder</td></tr>
+            <tr><td><code>git_history_all_branches</code></td><td class="opt-default">true</td><td>false = current branch only</td></tr>
+            <tr><td><code>keys</code></td><td class="opt-default">see below</td><td>remap command chords</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── KEYS ───────────────────────── -->
+    <section id="keys">
+      <h2><span class="n">12</span>Keybindings</h2>
+      <p>Every command, with its default chord. Override any subset in <code>keys = { ... }</code>; the
+      rest keep theirs.</p>
+      <pre><code>keys = {
+  save = <span style="color:var(--accent)">"ctrl+s"</span>,              close_tab = <span style="color:var(--accent)">"ctrl+w"</span>,
+  select_all = <span style="color:var(--accent)">"ctrl+a"</span>,        copy = <span style="color:var(--accent)">"ctrl+c"</span>,
+  cut = <span style="color:var(--accent)">"ctrl+x"</span>,               paste = <span style="color:var(--accent)">"ctrl+v"</span>,
+  undo = <span style="color:var(--accent)">"ctrl+z"</span>,              redo = <span style="color:var(--accent)">"ctrl+y"</span>,
+  open_folder = <span style="color:var(--accent)">"ctrl+o"</span>,       <span class="cmt">-- re-root the tree (or connect over SSH)</span>
+  open_remote = <span style="color:var(--accent)">"ctrl+shift+o"</span>, <span class="cmt">-- SSH: user@host[:/path]</span>
+  toggle_preview = <span style="color:var(--accent)">"ctrl+e"</span>,    <span class="cmt">-- markdown edit &lt;-&gt; preview</span>
+  find = <span style="color:var(--accent)">"ctrl+f"</span>,              replace = <span style="color:var(--accent)">"ctrl+h"</span>,
+  goto_line = <span style="color:var(--accent)">"ctrl+g"</span>,
+  toggle_git = <span style="color:var(--accent)">"ctrl+shift+g"</span>,  <span class="cmt">-- the git window</span>
+  toggle_terminal = <span style="color:var(--accent)">"ctrl+`"</span>,   <span class="cmt">-- the terminal panel</span>
+}</code></pre>
+      <div class="note"><span class="lbl">macOS</span> — <code>replace</code> defaults to
+      <code>cmd+alt+f</code>, because <code>cmd+h</code> is the system Hide shortcut and never reaches
+      apps.</div>
+
+      <h3>Built-in motions &amp; actions</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Key</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Arrows, <kbd>Home</kbd>/<kbd>End</kbd>, <kbd>PageUp</kbd>/<kbd>Down</kbd></td><td>move (hold <kbd>Ctrl</kbd> for word/document)</td></tr>
+            <tr><td><kbd>Shift</kbd>+move</td><td>extend selection</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>save (local disk or over SSH)</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd> (or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>)</td><td>undo / redo (grouped by typing run)</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>A</kbd> / <kbd>C</kbd> / <kbd>X</kbd> / <kbd>V</kbd></td><td>select all / copy / cut / paste</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd> / <kbd>Ctrl</kbd>+<kbd>H</kbd></td><td>find / replace</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td><td>go to line</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>W</kbd></td><td>close tab (or click the &times;)</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>Tab</kbd></td><td>next tab</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>change directory (in-app folder browser, or native)</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>O</kbd></td><td>connect over SSH (<code>user@host</code> or <code>user@host:/path</code>)</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></td><td>open/close the git window</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>`</kbd></td><td>show/hide the terminal</td></tr>
+            <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>markdown edit &#8596; preview</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>=</kbd> / <kbd>-</kbd> / <kbd>0</kbd></td><td>zoom in / out / reset (also <kbd>Ctrl</kbd>+wheel)</td></tr>
+            <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>indent / unindent</td></tr>
+            <tr><td>double-click word</td><td>select it</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── THEMES ───────────────────────── -->
+    <section id="themes">
+      <h2><span class="n">13</span>Themes</h2>
+      <p>Bundled: <code>eink</code> (light, the default), plus the dark <code>space</code>,
+      <code>forest</code>, <code>deep_ocean</code> and <code>mars</code>. Pick one by name, or write
+      your own. A theme is a table — <code>base</code> picks a bundled theme to start from, and you
+      override only what you want; the rest is inherited. Colours are <code>#rrggbb</code> or
+      <code>#rgb</code>.</p>
+      <pre><code>theme = {
+  name = <span style="color:var(--accent)">"midnight"</span>,
+  base = <span style="color:var(--accent)">"space"</span>,
+  bg = <span style="color:var(--accent)">"#0f1115"</span>,
+  fg = <span style="color:var(--accent)">"#d6d9df"</span>,
+}</code></pre>
+      <p>Put your theme in a <code>.lua</code> file next to <code>init.lua</code> and load it with
+      <code>theme = require("mytheme")</code>. Every field:</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Field</th><th>Controls</th></tr></thead>
+          <tbody>
+            <tr><td><code>bg</code> <code>fg</code> <code>sel</code> <code>dim</code> <code>panel</code></td><td>base surfaces and text</td></tr>
+            <tr><td><code>cur_line</code></td><td>background of the cursor's line</td></tr>
+            <tr><td><code>border</code> <code>border_width</code></td><td>window border; width <code>0</code> hides it</td></tr>
+            <tr><td><code>keyword</code> <code>function</code> <code>type</code> <code>string</code> <code>comment</code> <code>number</code></td><td>syntax palette</td></tr>
+            <tr><td><code>git_added</code> <code>git_modified</code> <code>git_removed</code></td><td>gutter change bars</td></tr>
+            <tr><td><code>git_bar_width</code> <code>git_bar_opacity</code></td><td>change-bar look</td></tr>
+            <tr><td><code>head_dot</code> <code>git_badge</code></td><td>HEAD marker, toolbar count badges</td></tr>
+            <tr><td><code>diff_add</code> <code>diff_removed</code> <code>diff_hunk</code></td><td>the File Status diff</td></tr>
+            <tr><td><code>conflict</code></td><td>conflicted files during a merge</td></tr>
+            <tr><td><code>graph_colors</code></td><td>commit-graph lane palette (cycled)</td></tr>
+            <tr><td><code>graph_lane_width</code> <code>graph_line_width</code> <code>graph_node_scale</code></td><td>graph geometry</td></tr>
+            <tr><td><code>ansi</code></td><td>the terminal's 16 base colours — all 16 or none</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted"><code>ansi</code> is black, red, green, yellow, blue, magenta, cyan, white, then
+      the bright eight. Indices 16&#8211;255 (the colour cube and grayscale ramp) are computed, not
+      themeable. The <a href="therefore-config-example.lua">full example config</a> has a complete
+      theme with every field filled in.</p>
+    </section>
+
+    <footer>
+      <span>therefore <span class="sym">&#8756;</span> — designed to work.</span>
+      <span><a href="index.html">home</a></span>
+    </footer>
+
+  </div>
+</body>
+</html>

@@ -49,6 +49,12 @@
     padding:.3rem .55rem; border-radius:3px; cursor:pointer;
   }
   .toggle:hover { color:var(--fg); border-color:var(--dim); }
+  .hgroup { display:flex; align-items:center; gap:1.1rem; }
+  .hgroup a.docslink {
+    color:var(--dim); text-decoration:none; font-size:.82rem; letter-spacing:.05em;
+    border-bottom:1px solid var(--border); padding-bottom:2px;
+  }
+  .hgroup a.docslink:hover { color:var(--fg); border-bottom-color:var(--fg); }
 
   .head { flex:none; }
   h1 { font-weight:600; font-size:2rem; margin:16px 0 .5rem; letter-spacing:-.01em; }
@@ -162,7 +168,9 @@
 
     <header>
       <a class="brand" href="/"><span class="sym">&#8756;</span><span class="name">therefore</span></a>
-      <button class="toggle" id="toggle">space</button>
+      <div class="hgroup">
+        <a class="docslink" href="docs.html">docs</a>
+      </div>
     </header>
 
     <div class="head">
@@ -225,19 +233,11 @@
   (function () {
     var root = document.documentElement;
 
-    // Theme
-    var btn = document.getElementById("toggle"), saved = null;
+    // Theme: honour a saved choice, else follow the OS.
+    var saved = null;
     try { saved = localStorage.getItem("therefore-theme"); } catch (e) {}
     if (!saved && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) saved = "space";
     if (saved) root.setAttribute("data-theme", saved);
-    function themeLabel() { btn.textContent = root.getAttribute("data-theme") === "space" ? "eink" : "space"; }
-    themeLabel();
-    btn.addEventListener("click", function () {
-      var next = root.getAttribute("data-theme") === "space" ? "eink" : "space";
-      root.setAttribute("data-theme", next);
-      try { localStorage.setItem("therefore-theme", next); } catch (e) {}
-      themeLabel();
-    });
 
     // Card stack
     var hint = document.getElementById("hint"), stage = document.getElementById("stage");
